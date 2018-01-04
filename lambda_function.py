@@ -57,20 +57,71 @@ def handle_session_end_request():
 def spellOut(input):
     return '<say-as interpret-as="spell-out">' + input + '</say-as>'
 
+
 def pause(seconds):
     return '<break time="' + str(seconds) + 's"/>'
 
 
-def play(intent, session):
+def brennanRequest(address):
+    print("Brennan request - "  + address)
+    return requests.get("http://192.168.178.55/b2cgi.fcgi?" + address)
+
+
+def brennanVolumeRequest(delta):
+    data = brennanRequest("status").json()
+    volume = int(data['volume'])
+
+    if volume + delta > 0 and volume + delta < 64:
+        brennanRequest("vol"+str(volume + delta))
+
+
+def brennanIdRequest(id):
+    brennanRequest("playID&" + id)
+
+
+def okResponse():
     session_attributes = {}
     reprompt_text      = None
     speech_output      = 'OK'
     should_end_session = True
 
-    request = requests.get('http://dpgwynne.ddns.net:8000/b2cgi.fcgi?play')
-
     return build_response(session_attributes, build_speechlet_response(
         intent['name'], speech_output, reprompt_text, should_end_session))
+
+
+def play(intent, session):
+    brennanRequest("play")
+    return okResponse()
+
+
+def next(intent, session):
+    brennanRequest("next")
+    return okResponse()
+
+
+def next(intent, session):
+    brennanRequest("back")
+    return okResponse()
+
+
+def volumeUp(intent, session):
+    brennanVolumeRequest(5)
+    return okResponse()
+
+
+def volumeReallyUp(intent, session):
+    brennanVolumeRequest(10)
+    return okResponse()
+
+
+def volumeDown(intent, session):
+    brennanVolumeRequest(-5)
+    return okResponse()
+
+
+def volumeReallyDown(intent, session):
+    brennanVolumeRequest(-10)
+    return okResponse()
 
 # --------------- Events ------------------
 
@@ -102,8 +153,20 @@ def on_intent(intent_request, session):
     intent_name = intent_request['intent']['name']
 
     # Dispatch to your skill's intent handlers
-    if intent_name == "Play" or intent_name == "Pause":
+    if intent_name == "Play" or intent_name == "Stop" or intent_name == "Pause":
         return play(intent, session)
+    elif intent_name == "Next":
+        return next(intent, session)
+    elif intent_name == "Back":
+        return back(intent, session)
+    elif intent_name == "VolumeUp":
+        return volumeUp(intent, session)
+    elif intent_name == "VolumeReallyUp":
+        return volumeReallyUp(intent, session)
+    elif intent_name == "VolumeDown":
+        return volumeDown(intent, session)
+    elif intent_name == "VolumeReallyDown":
+        return volumeReallyDown(intent, session)
     else:
         raise ValueError("Invalid intent")
 
@@ -144,7 +207,7 @@ def lambda_handler(event, context):
 
 if __name__ == "__main__":
     # execute only if run as a script
-    intent = {'name' : 'Play'}
+    intent = {'name' : 'VolumeDown'}
     session = {}
 
-    print(play(intent, session))
+    print(volumeDown(intent, session))
