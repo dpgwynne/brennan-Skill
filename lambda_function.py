@@ -79,7 +79,7 @@ def brennanIdRequest(id):
     brennanRequest("playID&" + id)
 
 
-def okResponse():
+def okResponse(intent, session):
     session_attributes = {}
     reprompt_text      = None
     speech_output      = 'OK'
@@ -91,37 +91,37 @@ def okResponse():
 
 def play(intent, session):
     brennanRequest("play")
-    return okResponse()
+    return okResponse(intent, session)
 
 
 def nextTrack(intent, session):
     brennanRequest("next")
-    return okResponse()
+    return okResponse(intent, session)
 
 
 def backTrack(intent, session):
     brennanRequest("back")
-    return okResponse()
+    return okResponse(intent, session)
 
 
 def volumeUp(intent, session):
     brennanVolumeRequest(5)
-    return okResponse()
+    return okResponse(intent, session)
 
 
 def volumeReallyUp(intent, session):
     brennanVolumeRequest(10)
-    return okResponse()
+    return okResponse(intent, session)
 
 
 def volumeDown(intent, session):
     brennanVolumeRequest(-5)
-    return okResponse()
+    return okResponse(intent, session)
 
 
 def volumeReallyDown(intent, session):
     brennanVolumeRequest(-10)
-    return okResponse()
+    return okResponse(intent, session)
 
 # --------------- Events ------------------
 
