@@ -94,12 +94,12 @@ def play(intent, session):
     return okResponse()
 
 
-def next(intent, session):
+def nextTrack(intent, session):
     brennanRequest("next")
     return okResponse()
 
 
-def next(intent, session):
+def backTrack(intent, session):
     brennanRequest("back")
     return okResponse()
 
@@ -156,9 +156,9 @@ def on_intent(intent_request, session):
     if intent_name == "Play" or intent_name == "Stop" or intent_name == "Pause":
         return play(intent, session)
     elif intent_name == "Next":
-        return next(intent, session)
+        return nextTrack(intent, session)
     elif intent_name == "Back":
-        return back(intent, session)
+        return backTrack(intent, session)
     elif intent_name == "VolumeUp":
         return volumeUp(intent, session)
     elif intent_name == "VolumeReallyUp":
