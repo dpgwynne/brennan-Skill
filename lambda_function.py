@@ -64,7 +64,7 @@ def pause(seconds):
 
 def brennanRequest(address):
     print("Brennan request - "  + address)
-    return requests.get("http://192.168.178.55/b2cgi.fcgi?" + address)
+    return requests.get("http://dpgwynne.ddns.net:8000/b2cgi.fcgi?" + address)
 
 
 def brennanVolumeRequest(delta):
