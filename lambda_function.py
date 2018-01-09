@@ -9,6 +9,7 @@ http://amzn.to/1LGWsLG
 
 from __future__ import print_function
 from botocore.vendored import requests
+from difflib import SequenceMatcher
 
 # --------------- Helpers that build all of the responses ----------------------
 
@@ -64,7 +65,7 @@ def pause(seconds):
 
 def brennanRequest(address):
     print("Brennan request - "  + address)
-    return requests.get("http://dpgwynne.ddns.net:8000/b2cgi.fcgi?" + address)
+    return requests.get("http://192.168.178.55/b2cgi.fcgi?" + address)
 
 
 def brennanVolumeRequest(delta):
@@ -79,49 +80,111 @@ def brennanIdRequest(id):
     brennanRequest("playID&" + id)
 
 
-def okResponse(intent, session):
+def response(text):
     session_attributes = {}
     reprompt_text      = None
-    speech_output      = 'OK'
+    speech_output      = text
     should_end_session = True
 
     return build_response(session_attributes, build_speechlet_response(
         intent['name'], speech_output, reprompt_text, should_end_session))
 
 
+def okResponse():
+    return response('OK')
+
+
 def play(intent, session):
     brennanRequest("play")
-    return okResponse(intent, session)
+    return okResponse()
 
 
-def nextTrack(intent, session):
+def closest(collection, text):
+    id = None
+
+    bestScore = 0.0
+    bestEntry = ''
+
+    for entry in collection.keys():
+        score = SequenceMatcher(None, entry, text).ratio()
+
+        #if score > 0.7:
+        #    print ("Entry [" + entry + "] got [" + str(score) + "]")
+
+        if score > bestScore:
+            bestScore = score
+            bestEntry = entry 
+            id = str(collection[entry])
+
+    #print("Best score:"  + str(bestScore))
+
+    return id, bestEntry
+
+
+def playAlbum(intent, session):
+    if 'slots' in intent and 'albumName' in intent['slots']:
+        albumName = intent['slots']['albumName']['value']
+
+        albums = {}
+
+        permittedChars = "0123456789abcdefghijklmnopqrstuvwxyz "
+
+        offset = 0
+        count  = 0
+
+        while offset == 0 or count == 500:
+            data = brennanRequest("search&artists=N&tracks=N&radio=N&count=500&offset=" + str(offset)).json()
+
+            for item in data:
+                if item['id'] >= 1000000 and item['id'] < 2000000:
+                    albums[" ".join("".join(c for c in item['album'].lower() if c in permittedChars).split())] = item['id']
+                    count = count + 1
+
+            offset = offset + 500
+
+        print("Loaded " + str(len(albums)) + " albums.")
+
+        id, album = closest(albums, albumName.lower())
+
+        if id is not None:
+            print('Playing Album ' + album)
+            brennanIdRequest(id)
+        else:
+            print('Unknown Album ' + album)
+
+        return okResponse()
+    else:
+        return response('I dont know which album you want me to play.')
+
+
+def next(intent, session):
     brennanRequest("next")
-    return okResponse(intent, session)
+    return okResponse()
 
 
-def backTrack(intent, session):
+def next(intent, session):
     brennanRequest("back")
-    return okResponse(intent, session)
+    return okResponse()
 
 
 def volumeUp(intent, session):
     brennanVolumeRequest(5)
-    return okResponse(intent, session)
+    return okResponse()
 
 
 def volumeReallyUp(intent, session):
     brennanVolumeRequest(10)
-    return okResponse(intent, session)
+    return okResponse()
 
 
 def volumeDown(intent, session):
     brennanVolumeRequest(-5)
-    return okResponse(intent, session)
+    return okResponse()
 
 
 def volumeReallyDown(intent, session):
     brennanVolumeRequest(-10)
-    return okResponse(intent, session)
+    return okResponse()
 
 # --------------- Events ------------------
 
@@ -155,10 +218,12 @@ def on_intent(intent_request, session):
     # Dispatch to your skill's intent handlers
     if intent_name == "Play" or intent_name == "Stop" or intent_name == "Pause":
         return play(intent, session)
+    elif intent_name == "PlayAlbum":
+        return playAlbum(intent, session)
     elif intent_name == "Next":
-        return nextTrack(intent, session)
+        return next(intent, session)
     elif intent_name == "Back":
-        return backTrack(intent, session)
+        return back(intent, session)
     elif intent_name == "VolumeUp":
         return volumeUp(intent, session)
     elif intent_name == "VolumeReallyUp":
@@ -207,7 +272,7 @@ def lambda_handler(event, context):
 
 if __name__ == "__main__":
     # execute only if run as a script
-    intent = {'name' : 'VolumeDown'}
+    intent = {'name' : 'PlayAlbum', 'slots' : {'albumName' : {'value' : 'bon run'}}}
     session = {}
 
-    print(volumeDown(intent, session))
+    print(playAlbum(intent, session))
