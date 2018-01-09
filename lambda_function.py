@@ -65,7 +65,7 @@ def pause(seconds):
 
 def brennanRequest(address):
     print("Brennan request - "  + address)
-    return requests.get("http://192.168.178.55/b2cgi.fcgi?" + address)
+    return requests.get("http://dpgwynne.ddns.net:8000/b2cgi.fcgi?" + address)
 
 
 def brennanVolumeRequest(delta):
@@ -80,7 +80,7 @@ def brennanIdRequest(id):
     brennanRequest("playID&" + id)
 
 
-def response(text):
+def response(intent, session, text):
     session_attributes = {}
     reprompt_text      = None
     speech_output      = text
@@ -90,13 +90,13 @@ def response(text):
         intent['name'], speech_output, reprompt_text, should_end_session))
 
 
-def okResponse():
-    return response('OK')
+def okResponse(intent, session):
+    return response(intent, session, 'OK')
 
 
 def play(intent, session):
     brennanRequest("play")
-    return okResponse()
+    return okResponse(intent, session)
 
 
 def closest(collection, text):
@@ -152,39 +152,39 @@ def playAlbum(intent, session):
         else:
             print('Unknown Album ' + album)
 
-        return okResponse()
+        return okResponse(intent, session)
     else:
         return response('I dont know which album you want me to play.')
 
 
-def next(intent, session):
+def nextTrack(intent, session):
     brennanRequest("next")
-    return okResponse()
+    return okResponse(intent, session)
 
 
-def next(intent, session):
+def backTrack(intent, session):
     brennanRequest("back")
-    return okResponse()
+    return okResponse(intent, session)
 
 
 def volumeUp(intent, session):
     brennanVolumeRequest(5)
-    return okResponse()
+    return okResponse(intent, session)
 
 
 def volumeReallyUp(intent, session):
     brennanVolumeRequest(10)
-    return okResponse()
+    return okResponse(intent, session)
 
 
 def volumeDown(intent, session):
     brennanVolumeRequest(-5)
-    return okResponse()
+    return okResponse(intent, session)
 
 
 def volumeReallyDown(intent, session):
     brennanVolumeRequest(-10)
-    return okResponse()
+    return okResponse(intent, session)
 
 # --------------- Events ------------------
 
@@ -221,9 +221,9 @@ def on_intent(intent_request, session):
     elif intent_name == "PlayAlbum":
         return playAlbum(intent, session)
     elif intent_name == "Next":
-        return next(intent, session)
+        return nextTrack(intent, session)
     elif intent_name == "Back":
-        return back(intent, session)
+        return backTrack(intent, session)
     elif intent_name == "VolumeUp":
         return volumeUp(intent, session)
     elif intent_name == "VolumeReallyUp":
