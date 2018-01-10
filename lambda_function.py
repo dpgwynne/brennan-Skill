@@ -90,13 +90,9 @@ def response(intent, session, text):
         intent['name'], speech_output, reprompt_text, should_end_session))
 
 
-def okResponse(intent, session):
-    return response(intent, session, 'OK')
-
-
 def play(intent, session):
     brennanRequest("play")
-    return okResponse(intent, session)
+    return response(intent, session, 'Brennan playing')
 
 
 def closest(collection, text):
@@ -147,44 +143,44 @@ def playAlbum(intent, session):
         id, album = closest(albums, albumName.lower())
 
         if id is not None:
-            print('Playing Album ' + album)
             brennanIdRequest(id)
+            return response(intent, session, 'Brennan playing album ' + album)
         else:
-            print('Unknown Album ' + album)
+            return response(intent, session, 'I dont know the album ' + albumName)
 
-        return okResponse(intent, session)
+        
     else:
         return response('I dont know which album you want me to play.')
 
 
 def nextTrack(intent, session):
     brennanRequest("next")
-    return okResponse(intent, session)
+    return response(intent, session, 'Brennan Next track')
 
 
 def backTrack(intent, session):
     brennanRequest("back")
-    return okResponse(intent, session)
+    return response(intent, session, 'Brennan Previous track')
 
 
 def volumeUp(intent, session):
     brennanVolumeRequest(5)
-    return okResponse(intent, session)
+    return response(intent, session, 'Brennan Volume Up')
 
 
 def volumeReallyUp(intent, session):
     brennanVolumeRequest(10)
-    return okResponse(intent, session)
+    return response(intent, session, 'Brennan Volume Really Up')
 
 
 def volumeDown(intent, session):
     brennanVolumeRequest(-5)
-    return okResponse(intent, session)
+    return response(intent, session, 'Brennan Volume Down')
 
 
 def volumeReallyDown(intent, session):
     brennanVolumeRequest(-10)
-    return okResponse(intent, session)
+    return response(intent, session, 'Brennan Volume Really Down')
 
 # --------------- Events ------------------
 
