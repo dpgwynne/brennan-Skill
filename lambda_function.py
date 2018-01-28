@@ -92,7 +92,17 @@ def response(intent, session, text):
 
 def play(intent, session):
     brennanRequest("play")
-    return response(intent, session, 'Brennan playing')
+
+    verb = ''
+
+    if intent['name'] == "Play":
+        verb = "playing"
+    elif intent['name'] == "Pause":
+        verb = "pausing"
+    elif intent['name'] == "Stop":
+        verb = "stopping"
+
+    return response(intent, session, 'Brennan ' + verb)
 
 
 def closest(collection, text):
@@ -121,7 +131,8 @@ def playAlbum(intent, session):
     if 'slots' in intent and 'albumName' in intent['slots']:
         albumName = intent['slots']['albumName']['value']
 
-        albums = {}
+        albums  = {}
+        artists = {}
 
         permittedChars = "0123456789abcdefghijklmnopqrstuvwxyz "
 
@@ -134,9 +145,11 @@ def playAlbum(intent, session):
             for item in data:
                 if item['id'] >= 1000000 and item['id'] < 2000000:
                     albums[" ".join("".join(c for c in item['album'].lower() if c in permittedChars).split())] = item['id']
+                    artists[str(item['id'])] = item['artist']
                     count = count + 1
 
             offset = offset + 500
+            count  = 0
 
         print("Loaded " + str(len(albums)) + " albums.")
 
@@ -144,10 +157,9 @@ def playAlbum(intent, session):
 
         if id is not None:
             brennanIdRequest(id)
-            return response(intent, session, 'Brennan playing album ' + album)
+            return response(intent, session, 'Brennan playing album ' + album + ' by ' + artists[id])
         else:
             return response(intent, session, 'I dont know the album ' + albumName)
-
         
     else:
         return response('I dont know which album you want me to play.')
@@ -268,7 +280,8 @@ def lambda_handler(event, context):
 
 if __name__ == "__main__":
     # execute only if run as a script
-    intent = {'name' : 'PlayAlbum', 'slots' : {'albumName' : {'value' : 'bon run'}}}
+    intent = {'name' : 'PlayAlbum', 'slots' : {'albumName' : {'value' : 'joshua tree'}}}
+    #intent = {'name' : 'Play'}
     session = {}
 
     print(playAlbum(intent, session))
